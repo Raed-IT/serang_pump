@@ -2,8 +2,8 @@
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-#define buz 9
+//  production 
+#define buz 9 
 #define chikSerangPin 0
 #define switchLimet 13
 #define tempPin A0
