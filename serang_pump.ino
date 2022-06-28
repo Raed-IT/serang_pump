@@ -2,28 +2,32 @@
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-//  production 
-#define buz 9 
+//  production
+#define buz 9
 #define chikSerangPin 0
-#define switchLimet 13
+#define switchGlogging 13
 #define tempPin A0
 // DIRECTION LOW FOR FORWARD ROTATION
 //SET DIRECTION HIGH FOR BACKWARD ROTATION
 #define dir 11
+//for test
+int current_stteps = 0 ;
+
 
 //#define Step 105
 #define Step 10
+bool clogging_serang = false;
 int in_temp = 40 ;
 bool isSerang = true ; // read if theris serang plugin or not
 int currenPage = 0;
 bool statusSerang = false ;
 int typeSerang = 50 ;
-int timePumping = 1;
-int volume ;
+long timePumping = 1;
+long volume ;
 int oldPageForErrorSerang = 0 ;
-int stepps_for_complete_Syrang = 1560;
-unsigned int stepps = 200 ;
-unsigned int delay_step = 1 ;
+long stepps_for_complete_Syrang = 2500;
+long stepps = 200 ;
+long delay_step = 1 ;
 // click on pull or push fro serang
 bool isClick = true ;
 
@@ -79,8 +83,7 @@ void setup() {
   pinMode(dir, OUTPUT);   // DIRECTION AS OUTPUT
   pinMode(Step, OUTPUT);  // STEP AS OUTPUT
   pinMode  ( chikSerangPin, INPUT_PULLUP);
-  pinMode  ( switchLimet, INPUT_PULLUP);
-
+  pinMode  ( switchGlogging, INPUT_PULLUP);
   lcd.begin(16, 2);
   lcd.backlight();
   lcd.setCursor(2, 0);
@@ -139,8 +142,8 @@ void setvolume(String type = "Defualt") {
         lcd.setCursor(0, 1);
         lcd.print ("            ");
         inputString += key;
-        if (volume + String(key).toInt ()< typeSerang ) {
-        volume = inputString.toInt();
+        if (volume + String(key).toInt () < typeSerang ) {
+          volume = inputString.toInt();
         } else {
           toneF();
           volume = 00;
@@ -340,6 +343,7 @@ void  printCahnging ( int col = 1 , int row = 0 , String content = " "  ) {
 
 
 void controllMainScreen () {
+  current_stteps = 0;
   char key = keypad.getKey();
   if (key) {
     tone (buz, 700, 200);
@@ -405,6 +409,7 @@ void controllMainScreen () {
           break;
 
         case 5:
+
           while ( isClick) {
             char key = keypad.getKey();
             if (key) {
@@ -480,13 +485,30 @@ void mainScreen () {
 void runing () {
   chikSerang();
   printStatusSerang("  ON");
-  calculation();
   readTemp();
   //  SET DIRICTION MOTOR
   digitalWrite(dir, HIGH);
   //  calculation all parameter ..
   calculation();
+
+  Serial.print("  volume=>  ");
+  Serial.print(volume);
+  Serial.print(" stepps_for_complete_Syrang =>  ");
+  Serial.print(stepps_for_complete_Syrang );
+
+  Serial.print("  stepps =>  ");
+  Serial.print(stepps );
+
+  Serial.print("  typeSerang=>  ");
+  Serial.print(typeSerang);
+  Serial.print("  delay_step=>  ");
+  Serial.println(delay_step);
   for (int i = 0 ; i < stepps; i++ ) {
+    clogging_serang = digitalRead(switchGlogging);
+    if (clogging_serang ) {
+      clogginError();
+    }
+
     //    chac temp motor
     if (readTemp() > in_temp) {
       toneF();
@@ -520,18 +542,25 @@ void calculation () {
   //delay_step => REQUIRED DELAY TIME BETWEEN STEPPS
 
   //  get reauierd number stepps for complet a requierd volum .
-  stepps = ( volume * stepps_for_complete_Syrang)   ;
-  stepps = stepps / typeSerang;
-
-
+  stepps = (long)volume * (long)stepps_for_complete_Syrang   ;
+  stepps = stepps / typeSerang ;
   //  convert between secund and millesecund
-  delay_step = (timePumping * 60 ) * 1000   ; // result is millesecund
+  delay_step = ((long)timePumping * 60 ) * 1000   ; // result is millesecund
 
   //    get requierd time delay for one step
-  delay_step = delay_step / stepps;
+  delay_step = (long)delay_step / (long)stepps;
+
 
 }
+void clogginError() {
+  while (clogging_serang) {
+    clogging_serang = digitalRead(switchGlogging);
+    Serial.println(clogging_serang);
+    sound();
+  }
+}
 void push () {
+  current_stteps++;
   printStatusSerang("Push");
   digitalWrite(dir, HIGH);
   digitalWrite(Step, HIGH);
@@ -541,6 +570,7 @@ void push () {
 }
 void pull ()
 {
+
   printStatusSerang("Pull");
   digitalWrite(dir, LOW);
   digitalWrite(Step, HIGH);
@@ -556,7 +586,7 @@ void tempScreen () {
 
   while (1) {
     char key = keypad.getKey();
-
+    delay(200);
     lcd.setCursor(0, 0);
     lcd .print ("temp motor is ");
     int temp = readTemp();
@@ -594,13 +624,5 @@ int readTemp () {
   //  read Temp Sensor and return result
   int readI = 1023 - analogRead(tempPin);
   int res = readI * 1.1;
-  delay (200);
   return res ;
-}
-
-void println (String content) {
-  Serial.println (content);
-}
-void print (String content) {
-  Serial.print(content);
 }
