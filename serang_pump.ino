@@ -2,8 +2,9 @@
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-//  production
+//  production 
 #define buz 9
+#define fanPin A3
 #define chikSerangPin 0
 #define switchGlogging 13
 #define tempPin A0
@@ -510,9 +511,8 @@ void runing () {
     }
 
     //    chac temp motor
-    if (readTemp() > in_temp) {
-      toneF();
-    }
+    readTemp();
+
     char key = keypad.getKey();
     if (key == '#') {
       sound ();
@@ -549,8 +549,6 @@ void calculation () {
 
   //    get requierd time delay for one step
   delay_step = (long)delay_step / (long)stepps;
-
-
 }
 void clogginError() {
   while (clogging_serang) {
@@ -622,5 +620,13 @@ void tempScreen () {
 
 int readTemp () {
   double reade = (analogRead(A0) * 4.88) / 1000;
-  return reade * 13.43 ;
+  reade = reade * 13.43;
+  if (reade >= in_temp) {
+    digitalWrite(fanPin, HIGH);
+    
+  }
+  if (reade + 3 <= in_temp)  {
+    digitalWrite(fanPin, LOW);
+  }
+  return reade;
 }
