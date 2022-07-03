@@ -621,8 +621,6 @@ void tempScreen () {
 }
 
 int readTemp () {
-  //  read Temp Sensor and return result
-  int readI = 1023 - analogRead(tempPin);
-  int res = readI * 1.1;
-  return res ;
+  double reade = (analogRead(A0) * 4.88) / 1000;
+  return reade * 13.43 ;
 }
