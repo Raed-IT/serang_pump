@@ -2,7 +2,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-//  production 
+//  production
 #define buz 9
 #define fanPin A3
 #define chikSerangPin 0
@@ -10,13 +10,13 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define tempPin A0
 // DIRECTION LOW FOR FORWARD ROTATION
 //SET DIRECTION HIGH FOR BACKWARD ROTATION
-#define dir 11
+#define dir 10
 //for test
 int current_stteps = 0 ;
 
 
 //#define Step 105
-#define Step 10
+#define Step 11
 bool clogging_serang = false;
 int in_temp = 40 ;
 bool isSerang = true ; // read if theris serang plugin or not
@@ -93,7 +93,7 @@ void setup() {
   //  delay(3000);
   //  tone (buz, 700, 500);
   lcd.clear();
-  Serial.begin(9600);
+//  Serial.begin(9600);
   pinMode (tempPin,  INPUT );
   //  tempScreen ();
 }
@@ -382,7 +382,6 @@ void controllMainScreen () {
           while ( isClick) {
             char key = keypad.getKey();
             if (key) {
-              Serial.println(key);
               if (key == '#') {
                 tone (buz, 700, 200);
                 isClick = false;
@@ -397,7 +396,6 @@ void controllMainScreen () {
           while ( isClick) {
             char key = keypad.getKey();
             if (key) {
-              Serial.println(key);
               if (key == '#') {
                 tone (buz, 700, 200);
                 isClick = false;
@@ -414,7 +412,6 @@ void controllMainScreen () {
           while ( isClick) {
             char key = keypad.getKey();
             if (key) {
-              Serial.println(key);
               if (key == '#') {
                 tone (buz, 700, 200);
                 isClick = false;
@@ -491,19 +488,6 @@ void runing () {
   digitalWrite(dir, HIGH);
   //  calculation all parameter ..
   calculation();
-
-  Serial.print("  volume=>  ");
-  Serial.print(volume);
-  Serial.print(" stepps_for_complete_Syrang =>  ");
-  Serial.print(stepps_for_complete_Syrang );
-
-  Serial.print("  stepps =>  ");
-  Serial.print(stepps );
-
-  Serial.print("  typeSerang=>  ");
-  Serial.print(typeSerang);
-  Serial.print("  delay_step=>  ");
-  Serial.println(delay_step);
   for (int i = 0 ; i < stepps; i++ ) {
     clogging_serang = digitalRead(switchGlogging);
     if (clogging_serang ) {
@@ -553,7 +537,6 @@ void calculation () {
 void clogginError() {
   while (clogging_serang) {
     clogging_serang = digitalRead(switchGlogging);
-    Serial.println(clogging_serang);
     sound();
   }
 }
@@ -587,7 +570,7 @@ void tempScreen () {
     delay(200);
     lcd.setCursor(0, 0);
     lcd .print ("temp motor is ");
-    int temp = readTemp();
+    float temp = readTemp();
     lcd.setCursor(0, 1);
     lcd.print (String(temp));
     lcd.setCursor(11, 1);
@@ -618,12 +601,11 @@ void tempScreen () {
   }
 }
 
-int readTemp () {
-  double reade = (analogRead(A0) * 4.88) / 1000;
+float readTemp () {
+  float reade = (analogRead(A0) * 4.88) / 1000;
   reade = reade * 13.43;
   if (reade >= in_temp) {
     digitalWrite(fanPin, HIGH);
-    
   }
   if (reade + 3 <= in_temp)  {
     digitalWrite(fanPin, LOW);
