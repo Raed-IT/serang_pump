@@ -7,6 +7,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define fanPin A3
 #define chikSerangPin 0
 #define switchGlogging 13
+
 #define tempPin A0
 // DIRECTION LOW FOR FORWARD ROTATION
 //SET DIRECTION HIGH FOR BACKWARD ROTATION
@@ -79,10 +80,10 @@ void toneF (int frq = 700 , int duration = 200) {
 
 
 void setup() {
-
   delay (2000);
   pinMode(dir, OUTPUT);   // DIRECTION AS OUTPUT
   pinMode(Step, OUTPUT);  // STEP AS OUTPUT
+  pinMode(fanPin, OUTPUT);
   pinMode  ( chikSerangPin, INPUT_PULLUP);
   pinMode  ( switchGlogging, INPUT_PULLUP);
   lcd.begin(16, 2);
@@ -93,7 +94,7 @@ void setup() {
   //  delay(3000);
   //  tone (buz, 700, 500);
   lcd.clear();
-//  Serial.begin(9600);
+  //  Serial.begin(9600);
   pinMode (tempPin,  INPUT );
   //  tempScreen ();
 }
